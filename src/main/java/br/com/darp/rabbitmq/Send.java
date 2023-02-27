@@ -10,9 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Send {
-    private final static String QUEUE_NAME = "new-queue";
-    private final static String QUEUE_ERROR = "dependencias-error";
-    private final static String EXCHANGE_NAME = "new-logs";
+    private final static String QUEUE_NAME = "logs";
+    private final static String QUEUE_ERROR = "logs-error";
+    private final static String EXCHANGE_NAME = "logs-exchange";
 
     public static void main(String[] argv) throws Exception{
 
@@ -22,7 +22,7 @@ public class Send {
         connectionFactory.setPassword("pass");
 
         Map<String, Object> configs = new HashMap<>();
-        configs.put("x-dead-letter-exchange","DLX");
+        configs.put("x-dead-letter-exchange","error-dlx");
         configs.put("x-dead-letter-routing-key","erro");
 
         boolean durable = true;
@@ -30,11 +30,11 @@ public class Send {
         try(Connection connection = connectionFactory.newConnection();
         Channel channel = connection.createChannel()){
             channel.exchangeDeclare(EXCHANGE_NAME,"direct",true,false,null);
-            channel.exchangeDeclare("DLX","direct",true,false,null);
+            channel.exchangeDeclare("error-dlx","direct",true,false,null);
             channel.queueDeclare(QUEUE_ERROR,durable,false,false,null);
             channel.queueDeclare(QUEUE_NAME, durable, false, false,configs);
 
-            String mensagem = "..";
+            String mensagem = "....";
 
             channel.basicPublish(EXCHANGE_NAME,"build", MessageProperties.PERSISTENT_TEXT_PLAIN,
                     mensagem.getBytes(StandardCharsets.UTF_8));

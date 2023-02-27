@@ -13,9 +13,9 @@ import java.util.Map;
 @Startup
 @ApplicationScoped
 public class Recv {
-    private final static String QUEUE_NAME = "new-queue";
-    private final static String QUEUE_ERROR = "dependencias-error";
-    private final static String EXCHANGE_NAME = "new-logs";
+    private final static String QUEUE_NAME = "logs";
+    private final static String QUEUE_ERROR = "logs-error";
+    private final static String EXCHANGE_NAME = "logs-exchange";
 
     public Recv() throws Exception{
 
@@ -29,7 +29,7 @@ public class Recv {
         factory.setRequestedChannelMax(5);
 
         Map<String, Object> configs = new HashMap<>();
-        configs.put("x-dead-letter-exchange","DLX");
+        configs.put("x-dead-letter-exchange","error-dlx");
         configs.put("x-dead-letter-routing-key","erro");
 
         boolean durable = true;
@@ -40,12 +40,12 @@ public class Recv {
         Channel channel = connection.createChannel();
 
         channel.exchangeDeclare(EXCHANGE_NAME,"direct",true,false,null);
-        channel.exchangeDeclare("DLX","direct",true,false,null);
+        channel.exchangeDeclare("error-dlx","direct",true,false,null);
         channel.basicQos(prefetch);
         channel.queueDeclare(QUEUE_NAME,durable,false,false,configs);
         channel.queueDeclare(QUEUE_ERROR,durable,false,false,null);
         channel.queueBind(QUEUE_NAME,EXCHANGE_NAME,"build");
-        channel.queueBind(QUEUE_ERROR,"DLX","erro");
+        channel.queueBind(QUEUE_ERROR,"error-dlx","erro");
 
         System.out.println(" [*] Esperando mensagens. Para sair, encerre a aplicação.");
 
